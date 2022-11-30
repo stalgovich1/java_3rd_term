@@ -1,8 +1,9 @@
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Objects;
 
 
-public class ImmutableMatrix {
+public class Matrix {
     private double[][] current_matrix;
     private int row;
     private int column;
@@ -33,10 +34,10 @@ public class ImmutableMatrix {
 
 
     // Constructors
-    public ImmutableMatrix(){
+    public Matrix(){
         createMatrix(0,0);
     }
-    public ImmutableMatrix(int size){
+    public Matrix(int size){
         createMatrix(size, size);
         for (int i = 0; i < this.row; i++)
         {
@@ -51,12 +52,12 @@ public class ImmutableMatrix {
         }
     }
 
-    public ImmutableMatrix(int row, int column){
+    public Matrix(int row, int column){
         createMatrix(row, column);
         fill_matrix();
-
     }
-    public ImmutableMatrix(ImmutableMatrix matrix) {
+
+    public Matrix(Matrix matrix) {
         int row = matrix.sizeOfMatrix()[0];
         int column = matrix.sizeOfMatrix()[1];
         createMatrix(row, column);
@@ -88,9 +89,14 @@ public class ImmutableMatrix {
         return column1;
     }
 
+    // Setter
+    public void setElement(int row, int column, double val){
+        current_matrix[row-1][column-1]=val;
+    }
+
     // Inverse
-    public void rowsAdd(int i, ImmutableMatrix unit){
-        for (int j = 0;j<this.row;j++)
+    public void rowsAdd(int i, Matrix unit){
+        for (int j = 0; j<this.row; j++)
             if (i != j && this.current_matrix[j][i] != 0) {
                 for (int d = 0;d<this.row;d++) {
                     this.current_matrix[i][d] += this.current_matrix[j][d];
@@ -100,7 +106,7 @@ public class ImmutableMatrix {
             }
     }
 
-    public void diagonal_zero_check(ImmutableMatrix unit){
+    public void diagonal_zero_check(Matrix unit){
         for (int i = 0; i<this.row; i++) {
             if (this.current_matrix[i][i] == 0) {
                 rowsAdd(i, unit);
@@ -108,7 +114,7 @@ public class ImmutableMatrix {
         }
     }
 
-    public void Inverse(ImmutableMatrix unit){
+    public void Inverse(Matrix unit){
         DecimalFormat df = new DecimalFormat("##.##");
 
         this.diagonal_zero_check(unit);
@@ -152,7 +158,7 @@ public class ImmutableMatrix {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ImmutableMatrix matrix = (ImmutableMatrix) o;
+        Matrix matrix = (Matrix) o;
         int row = matrix.sizeOfMatrix()[0];
         int column = matrix.sizeOfMatrix()[1];
 
