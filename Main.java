@@ -1,187 +1,130 @@
-import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.*;
+import
+//step 1
+class StringCalculator
+{
+    public int add(String digit)
+    {
+        List<String> delimiters = new ArrayList<String>(); //making lists for delimiters
+        List<Integer> negatives = new ArrayList<Integer>(); //making lists for negatives
 
+        int result = 0, symbol;
 
-public class ImmutableMatrix {
-    private double[][] current_matrix;
-    private int row;
-    private int column;
-
-    public void createMatrix(int row, int column){
-        current_matrix = new double[row][column];
-        this.row = row;
-        this.column = column;
-    }
-
-    // Filling our matrix
-    public void fill_matrix(){
-        int min = -10;
-        int max = 10;
-
-        for (int i = 0; i < this.row; i++)
+        if (digit.isEmpty())
         {
-            for (int j = 0; j < this.column; j++)
-            {
-                current_matrix[i][j] = (int)(Math.random()*(max-min+1)+min);
-            }
+            return 0; //step 2
         }
-    }
 
-    public int[] sizeOfMatrix(){;
-        return new int[] {this.row, this.column};
-    }
+        //step 4
+        delimiters.add(","); //adding standart delimiters, working till the end of the program
+        delimiters.add("\n");
 
-
-    // Constructors
-    public ImmutableMatrix(){
-        createMatrix(0,0);
-    }
-    public ImmutableMatrix(int size){
-        createMatrix(size, size);
-        for (int i = 0; i < this.row; i++)
+        if (digit.charAt(0) == '/' && digit.charAt(1) == '/')//checking if slashes on the first position
         {
-            for (int j = 0; j < this.column; j++)
+            //step 8
+            String pat1 = "\\[(.*?)\\]";//group delims in square brackets
+            String pat2 = "\\n(.+)"; //group all numbers after "\n"
+            String pat3 = "//(.*?)\\n"; //group delims without square brackets
+
+            // making pattern from string
+
+            Pattern delimiters_pattern = Pattern.compile(pat1);
+            Pattern delimiters_pattern_without_brackets = Pattern.compile(pat3);
+            Pattern numbers_pattern = Pattern.compile(pat2);
+
+            //looking for pattern
+            Matcher delimiters_matcher = delimiters_pattern.matcher(digit.substring(2));
+            Matcher delimiters_matcher_without_brackets = delimiters_pattern_without_brackets.matcher(digit);
+            Matcher numbers_matcher = numbers_pattern.matcher(digit);
+
+            //just looking for numbers in pattern
+            if (numbers_matcher.find())
             {
-                if (i == j){
-                    current_matrix[i][j] = 1;
-                }else {
-                    current_matrix[i][j] = 0;
+                digit = numbers_matcher.group(1);
+            }
+
+            //just looking for delims in pattern
+
+            if (!delimiters_matcher.find())
+            {
+                while (delimiters_matcher_without_brackets.find())
+                {
+                    delimiters.add(delimiters_matcher_without_brackets.group(1));
                 }
+            }else {
+                do
+                {
+                    delimiters.add(delimiters_matcher.group(1));
+                }while (delimiters_matcher.find());
             }
         }
-    }
 
-    public ImmutableMatrix(int row, int column){
-        createMatrix(row, column);
-        fill_matrix();
+        //sorting so that there is no mistake with different-length delims
 
-    }
-    public ImmutableMatrix(ImmutableMatrix matrix) {
-        int row = matrix.sizeOfMatrix()[0];
-        int column = matrix.sizeOfMatrix()[1];
-        createMatrix(row, column);
-
-        for (int i = 0; i < this.row; i++)
+        Collections.sort(delimiters, Collections.reverseOrder()); //sorting delimiters in reverse order
+        for (String j : delimiters)
         {
-            for (int j = 0; j < this.column; j++)
-            {
-                current_matrix[i][j] = matrix.getElement(i,j);
-            }
+            digit = digit.replace(j, " ");// Replacing delimiters with spaces
         }
-    }
+        //step 3
 
-    // Getters
-    public int getElement(int row, int column){return (int)current_matrix[row][column];}
-    public double[] getRow(int row){return current_matrix[row-1];}
-    public double[] getColumn(int column){
-        double[] column1 = new double[column];
+        String[] split_numbers = digit.split(" ", -1); // Final split part
 
-        for (int i = 0; i < this.row; i++)
+        //we receive an array with numbers that must be summed
+
+        for (String character : split_numbers) //go through an array
         {
-            for (int j = 0; j < this.column; j++)
+            if (character.isEmpty())
             {
-                if (column-1 == j){
-                    column1[i] = current_matrix[i][j];
+                System.out.println("error, there is no number between delimiters!!!");
+                return 0;
+            }
+
+            if (int_check(character))
+            {
+                symbol = Integer.parseInt(character);
+                if (symbol >= 0) //positive check
+                {
+                    if (symbol <= 1000) result += symbol;
+                }else
+                {
+                    negatives.add(Integer.parseInt(character));
                 }
+            }else
+            {
+                System.out.printf("error, not a number\n", character);
             }
         }
-        return column1;
-    }
+        if (!negatives.isEmpty())//checking if there is any negatives numbers in the list
+        {
 
-    // Inverse
-    public void rowsAdd(int i, ImmutableMatrix unit){
-        for (int j = 0;j<this.row;j++)
-            if (i != j && this.current_matrix[j][i] != 0) {
-                for (int d = 0;d<this.row;d++) {
-                    this.current_matrix[i][d] += this.current_matrix[j][d];
-                    unit.current_matrix[i][d] += unit.current_matrix[j][d];
-                }
-                break;
-            }
-    }
-
-    public void diagonal_zero_check(ImmutableMatrix unit){
-        for (int i = 0; i<this.row; i++) {
-            if (this.current_matrix[i][i] == 0) {
-                rowsAdd(i, unit);
-            }
-        }
-    }
-
-    public void Inverse(ImmutableMatrix unit){
-        DecimalFormat df = new DecimalFormat("##.##");
-
-        this.diagonal_zero_check(unit);
-
-        for (int i = 0; i<this.row; i++) {
-            double temp = current_matrix[i][i];
-            for (int j = 0; j<this.row; j++) {
-                current_matrix[i][j] = Double.parseDouble(df.format(current_matrix[i][j] /= temp));
-                unit.current_matrix[i][j] = Double.parseDouble(df.format(unit.current_matrix[i][j] /= temp));
-            }
-            rowsSubtraction(i, current_matrix, unit.current_matrix);
+            System.out.println("Lower then 0: ");
         }
 
-        System.out.println("Result: ");
-        unit.show();
+        return result;
     }
 
-    public void rowsSubtraction(int i, double[][] matrix, double[][] unit){
-        DecimalFormat df = new DecimalFormat("##.##");
-
-        for (int j = 0;j<matrix.length;j++) {
-            if (i != j) {
-                double temp1 = matrix[j][i];
-                for (int k = 0; k<matrix.length; k++) {
-                    matrix[j][k] = Double.parseDouble(df.format(matrix[j][k] -= temp1 * matrix[i][k]));
-                    unit[j][k] = Double.parseDouble(df.format(unit[j][k] -= temp1 * unit[i][k]));
-
-                    if (unit[j][k] > Double.MAX_VALUE) {
-                        System.out.println("Inverse matrix doesn't exist!");
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-
-    // Equals/hashCode
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ImmutableMatrix matrix = (ImmutableMatrix) o;
-        int row = matrix.sizeOfMatrix()[0];
-        int column = matrix.sizeOfMatrix()[1];
-
-        if (this.row != row || this.column != column){
+    public static boolean int_check(String number)
+    {
+        try
+        {
+            Integer.parseInt(number);
+            return true;
+        }catch (NumberFormatException ex)
+        {
             return false;
         }
-
-
-        for (int i = 0; i < this.row; i++) {
-            for (int j = 0; j < this.column; j++) {
-                if (current_matrix[i][j] != matrix.getElement(i, j)){
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
-    @Override
-    public int hashCode() {
-        return 31 * Arrays.deepHashCode(current_matrix);
-    }
+}
 
-    public void show() {
-        for (double[] rows : current_matrix) {
-            for (double element : rows) {
-                System.out.print(element + "\t");
-            }
-            System.out.println();
-        }
+public class Main
+{
+    public static void main(String[] gin)
+    {
+        StringCalculator calculator = new StringCalculator();
+        System.out.println(calculator.add("//[***][*][**][123]\n2*6***2123-22")); //step 7
     }
 }
