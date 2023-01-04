@@ -1,2 +1,6 @@
-# java_3rd_term
-This is a repository for my java labs
+# oop-di-lab
+
+Generated with:
+
+- Gradle 7.5
+- JVM 18.0.2
